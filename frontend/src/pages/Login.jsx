@@ -1,62 +1,68 @@
 import React, { useState } from 'react';
-import api from '../utils/axios';
-import { useDispatch } from 'react-redux';
-import { setCredentials } from '../app/redux/authSlice';
 import { useNavigate } from 'react-router-dom';
+import api from '../utils/axios';
+import ErrorAlert from '../components/ErrorAlert';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-const handleLogin = async () => {
-  try {
-    const res = await api.post('/auth/login', { email, password });
+  const handleLogin = async () => {
+    setIsLoading(true);
+    setError(null);
 
-    const { token, user } = res.data;
-    const isAdmin = user?.role?.toLowerCase() === 'admin';
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      const { token, refreshToken, user } = response.data;
 
-    console.log("User Role:", user.role);
-    console.log("isAdmin stored as:", isAdmin ? 'true' : 'false');
+      localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('user', JSON.stringify(user));
 
-    localStorage.setItem('token', token);
-    localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
-
-    dispatch(setCredentials({ token, user }));
-
-    if (isAdmin) {
-      navigate('/admin/dashboard');
-    } else {
-      navigate('/dashboard');
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError({
+        message: err.message || 'Failed to login. Please check your credentials.'
+      });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    alert(err.response?.data?.message || "Login failed");
-  }
-};
-
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="bg-white p-6 shadow-md rounded-md">
         <h2 className="text-xl font-semibold mb-4">Login</h2>
+        
+        <ErrorAlert error={error} onClose={() => setError(null)} />
+        
         <input
           className="border p-2 mb-2 w-full"
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           className="border p-2 mb-4 w-full"
           type="password"
           placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         <button
-          className="bg-blue-500 text-white py-2 px-4 rounded"
+          className="bg-blue-500 text-white py-2 px-4 rounded w-full"
           onClick={handleLogin}
+          disabled={isLoading}
         >
-          Login
+          {isLoading ? 'Signing in...' : 'Login'}
         </button>
       </div>
     </div>

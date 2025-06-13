@@ -1,13 +1,26 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-  username: String,
-  email: String,
-  password: String,
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],
-    default: 'user',
+    default: 'user'
   },
   sessions: [
     {
@@ -15,10 +28,12 @@ const userSchema = new mongoose.Schema({
       createdAt: {
         type: Date,
         default: Date.now,
-        expires: '7d', // this auto-deletes after 7 days (optional)
-      },
-    },
-  ],
+        expires: '7d'
+      }
+    }
+  ]
+}, {
+  timestamps: true
 });
 
 const User = mongoose.model('User', userSchema);
