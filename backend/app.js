@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 import adminRoutes from './routes/admin.js'
+const PORT = 5000;
 
 dotenv.config();
 const app = express();
@@ -25,6 +26,6 @@ app.use('/api/admin',adminRoutes)
 mongoose.connect("mongodb://localhost:27017/mern-auth")
   .then(() => {
     console.log('MongoDB connected');
-    app.listen(5000, () => console.log(`Server running on port ${process.env.PORT}`));
+    app.listen(PORT, () => console.log(`Server running on port 5000`));
   })
   .catch(err => console.log(err));
